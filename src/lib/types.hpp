@@ -237,6 +237,8 @@ enum class JoinMode { Inner, Left, Right, FullOuter, Cross, Semi, AntiNullAsTrue
 
 enum class UnionMode { Positions, All };
 
+enum class SetOperationMode { Intersect, Except };
+
 enum class OrderByMode { Ascending, Descending, AscendingNullsLast, DescendingNullsLast };
 
 enum class TableType { References, Data };
@@ -273,12 +275,14 @@ extern const boost::bimap<PredicateCondition, std::string> predicate_condition_t
 extern const boost::bimap<OrderByMode, std::string> order_by_mode_to_string;
 extern const boost::bimap<JoinMode, std::string> join_mode_to_string;
 extern const boost::bimap<UnionMode, std::string> union_mode_to_string;
+//extern const boost::bimap<SetOperationMode, std::string> set_operator_mode_to_string;
 extern const boost::bimap<TableType, std::string> table_type_to_string;
 
 std::ostream& operator<<(std::ostream& stream, PredicateCondition predicate_condition);
 std::ostream& operator<<(std::ostream& stream, OrderByMode order_by_mode);
 std::ostream& operator<<(std::ostream& stream, JoinMode join_mode);
 std::ostream& operator<<(std::ostream& stream, UnionMode union_mode);
+//std::ostream& operator<<(std::ostream& stream, SetOperationMode set_operations_mode);
 std::ostream& operator<<(std::ostream& stream, TableType table_type);
 
 using BoolAsByteType = uint8_t;

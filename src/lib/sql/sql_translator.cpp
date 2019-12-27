@@ -96,6 +96,12 @@ const std::unordered_map<hsql::OrderType, OrderByMode> order_type_to_order_by_mo
     {hsql::kOrderDesc, OrderByMode::Descending},
 };
 
+// TODO Teresa: add union
+const std::unordered_map<hsql::SetType, SetOperationMode> set_operations_type_to_set_operation_mode = {
+    {hsql::kSetIntersect, SetOperationMode::Intersect},
+    {hsql::kSetExcept, SetOperationMode::Except},
+};
+
 JoinMode translate_join_mode(const hsql::JoinType join_type) {
   static const std::unordered_map<const hsql::JoinType, const JoinMode> join_type_to_mode = {
       {hsql::kJoinInner, JoinMode::Inner}, {hsql::kJoinFull, JoinMode::FullOuter}, {hsql::kJoinLeft, JoinMode::Left},
@@ -201,13 +207,13 @@ std::shared_ptr<AbstractLQPNode> SQLTranslator::_translate_select_statement(cons
   // 5. GROUP BY clause
   // 6. HAVING clause
   // 7. SELECT clause (incl. DISTINCT)
-  // 8. UNION clause
+  // 8. UNION clause (incl. INTERSECT, EXCEPT)
   // 9. ORDER BY clause
   // 10. LIMIT clause
 
   AssertInput(select.selectList, "SELECT list needs to exist");
   AssertInput(!select.selectList->empty(), "SELECT list needs to have entries");
-  AssertInput(!select.unionSelect, "Set operations (UNION/INTERSECT/...) are not supported yet");
+  AssertInput(!select.nestedSetSelectStatement, "Set operations (UNION/INTERSECT/...) are not yet supported yet");
 
   // Translate WITH clause
   if (select.withDescriptions) {
@@ -237,6 +243,13 @@ std::shared_ptr<AbstractLQPNode> SQLTranslator::_translate_select_statement(cons
 
   // Translate SELECT, HAVING, GROUP BY in one go, as they are interdependent
   _translate_select_groupby_having(select, select_list_elements);
+
+  // Translate UNION, INTERSECT, EXCEPT
+  // if (select.setOperator) ???
+  if (select.nestedSetSelectStatement) {
+    _translate_set_operation(*select.setOperator);
+    //_translate_set_operation(*select.setOperator, select_list_elements);
+  }
 
   // Translate ORDER BY and LIMIT
   if (select.order) _translate_order_by(*select.order);
@@ -274,7 +287,7 @@ std::shared_ptr<AbstractLQPNode> SQLTranslator::_translate_select_statement(cons
   }
 
   return _current_lqp;
-}
+}  // namespace opossum
 
 void SQLTranslator::_translate_hsql_with_description(hsql::WithDescription& desc) {
   SQLTranslator with_translator{_use_mvcc, nullptr, _parameter_id_allocator, _with_descriptions};
@@ -1028,6 +1041,30 @@ void SQLTranslator::_translate_select_groupby_having(const hsql::SelectStatement
                                        std::vector<std::shared_ptr<AbstractExpression>>{}, _current_lqp);
   }
 }
+
+void SQLTranslator::_translate_set_operation(const hsql::SetOperator& set_operator) {
+  if (set_operator.setType == hsql::kSetIntersect) {
+  }
+
+  if (set_operator.setType == hsql::kSetExcept) {
+  }
+}
+
+/* std::shared_ptr<AbstractLQPNode> SQLTranslator::_translate_set_operation(
+    const hsql::SetOperator& set_operator, const std::vector<SelectListElement>& select_list_elements) {
+  //const auto left_expression = *select_list_elements.at(0);
+  //const auto right_expression =
+
+  if (set_operator.setType == hsql::kSetIntersect) {
+  }
+
+  if (set_operator.setType == hsql::kSetExcept) {
+  }
+
+  return nullptr;
+  //return SetOperationsNode::make();
+  //return InsertNode::make(table_name, insert_data_node);
+} */
 
 void SQLTranslator::_translate_order_by(const std::vector<hsql::OrderDescription*>& order_list) {
   if (order_list.empty()) return;

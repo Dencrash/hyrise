@@ -73,6 +73,7 @@ ExpressionUnorderedSet gather_locally_required_expressions(
     case LQPNodeType::Sort:
     case LQPNodeType::StaticTable:
     case LQPNodeType::StoredTable:
+    case LQPNodeType::SetOperation:
     case LQPNodeType::Union:
     case LQPNodeType::Validate:
     case LQPNodeType::Mock: {
