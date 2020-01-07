@@ -243,7 +243,7 @@ void Optimizer::validate_lqp(const std::shared_ptr<AbstractLQPNode>& root_node) 
         case LQPNodeType::Limit:
         case LQPNodeType::Predicate:
         case LQPNodeType::Projection:
-        case LQPNodeType::SetOperation:
+        case LQPNodeType::SetOperator:
         case LQPNodeType::Root:
         case LQPNodeType::Sort:
         case LQPNodeType::Validate:

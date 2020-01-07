@@ -237,7 +237,7 @@ enum class JoinMode { Inner, Left, Right, FullOuter, Cross, Semi, AntiNullAsTrue
 
 enum class UnionMode { Positions, All };
 
-enum class SetOperationMode { Intersect, Except };
+enum class SetOperatorMode { Intersect, Except };
 
 enum class OrderByMode { Ascending, Descending, AscendingNullsLast, DescendingNullsLast };
 

@@ -96,10 +96,10 @@ const std::unordered_map<hsql::OrderType, OrderByMode> order_type_to_order_by_mo
     {hsql::kOrderDesc, OrderByMode::Descending},
 };
 
-// TODO Teresa: add union
-const std::unordered_map<hsql::SetType, SetOperationMode> set_operations_type_to_set_operation_mode = {
-    {hsql::kSetIntersect, SetOperationMode::Intersect},
-    {hsql::kSetExcept, SetOperationMode::Except},
+// TODO dyod3_ws19/20 (teresa) add unionmode as set_operator_mode??
+const std::unordered_map<hsql::SetType, SetOperatorMode> set_operations_type_to_set_operation_mode = {
+    {hsql::kSetIntersect, SetOperatorMode::Intersect},
+    {hsql::kSetExcept, SetOperatorMode::Except},
 };
 
 JoinMode translate_join_mode(const hsql::JoinType join_type) {

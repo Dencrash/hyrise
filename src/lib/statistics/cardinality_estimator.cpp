@@ -155,8 +155,8 @@ std::shared_ptr<TableStatistics> CardinalityEstimator::estimate_statistics(
       output_table_statistics = estimate_projection_node(*projection_node, left_input_table_statistics);
     } break;
 
-    case LQPNodeType::SetOperation: {
-      // TODO Teresa
+    case LQPNodeType::SetOperator: {
+      // TODO dyod3_ws19/20 (teresa)
     } break;
 
     case LQPNodeType::Sort: {
