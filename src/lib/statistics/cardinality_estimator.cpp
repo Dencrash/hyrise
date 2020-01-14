@@ -156,6 +156,7 @@ std::shared_ptr<TableStatistics> CardinalityEstimator::estimate_statistics(
     } break;
 
     case LQPNodeType::SetOperation: {
+      // TODO Teresa
     } break;
 
     case LQPNodeType::Sort: {

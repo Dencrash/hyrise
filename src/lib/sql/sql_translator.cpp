@@ -213,7 +213,7 @@ std::shared_ptr<AbstractLQPNode> SQLTranslator::_translate_select_statement(cons
 
   AssertInput(select.selectList, "SELECT list needs to exist");
   AssertInput(!select.selectList->empty(), "SELECT list needs to have entries");
-  AssertInput(!select.nestedSetSelectStatement, "Set operations (UNION/INTERSECT/...) are not yet supported yet");
+  AssertInput(!select.setOperator->nestedSelectStatement, "Set operations (UNION/INTERSECT/...) are not yet supported");
 
   // Translate WITH clause
   if (select.withDescriptions) {
@@ -1041,7 +1041,15 @@ void SQLTranslator::_translate_select_groupby_having(const hsql::SelectStatement
   }
 }
 
+<<<<<<< HEAD
 /* void SQLTranslator::_translate_set_operation(const hsql::SetOperator& set_operator) {
+=======
+void SQLTranslator::_translate_set_operation(const hsql::SetOperator& set_operator,
+                                             const std::vector<SelectListElement>& select_list_elements) {
+  const auto left_expr = select_list_elements.at(0);
+  const auto right_expr = select_list_elements.at(1);
+
+>>>>>>> 005ef8a05fdee6d5b0497c131efe22d0d6aa4482
   if (set_operator.setType == hsql::kSetIntersect) {
   }
 
