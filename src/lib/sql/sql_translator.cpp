@@ -1041,22 +1041,6 @@ void SQLTranslator::_translate_select_groupby_having(const hsql::SelectStatement
   }
 }
 
-<<<<<<< HEAD
-/* void SQLTranslator::_translate_set_operation(const hsql::SetOperator& set_operator) {
-=======
-void SQLTranslator::_translate_set_operation(const hsql::SetOperator& set_operator,
-                                             const std::vector<SelectListElement>& select_list_elements) {
-  const auto left_expr = select_list_elements.at(0);
-  const auto right_expr = select_list_elements.at(1);
-
->>>>>>> 005ef8a05fdee6d5b0497c131efe22d0d6aa4482
-  if (set_operator.setType == hsql::kSetIntersect) {
-  }
-
-  if (set_operator.setType == hsql::kSetExcept) {
-  }
-} */
-
 void SQLTranslator::_translate_order_by(const std::vector<hsql::OrderDescription*>& order_list) {
   if (order_list.empty()) return;
 
