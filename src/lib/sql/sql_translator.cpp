@@ -97,10 +97,10 @@ const std::unordered_map<hsql::OrderType, OrderByMode> order_type_to_order_by_mo
 };
 
 // TODO Teresa: add union
-const std::unordered_map<hsql::SetType, SetOperationMode> set_operations_type_to_set_operation_mode = {
+/* const std::unordered_map<hsql::SetType, SetOperationMode> set_operations_type_to_set_operation_mode = {
     {hsql::kSetIntersect, SetOperationMode::Intersect},
     {hsql::kSetExcept, SetOperationMode::Except},
-};
+}; */
 
 JoinMode translate_join_mode(const hsql::JoinType join_type) {
   static const std::unordered_map<const hsql::JoinType, const JoinMode> join_type_to_mode = {
@@ -245,11 +245,10 @@ std::shared_ptr<AbstractLQPNode> SQLTranslator::_translate_select_statement(cons
   _translate_select_groupby_having(select, select_list_elements);
 
   // Translate UNION, INTERSECT, EXCEPT
-  // if (select.setOperator) ???
-  if (select.nestedSetSelectStatement) {
+  /* if (select.nestedSetSelectStatement) {
     _translate_set_operation(*select.setOperator);
     //_translate_set_operation(*select.setOperator, select_list_elements);
-  }
+  } */
 
   // Translate ORDER BY and LIMIT
   if (select.order) _translate_order_by(*select.order);
@@ -1042,28 +1041,12 @@ void SQLTranslator::_translate_select_groupby_having(const hsql::SelectStatement
   }
 }
 
-void SQLTranslator::_translate_set_operation(const hsql::SetOperator& set_operator) {
+/* void SQLTranslator::_translate_set_operation(const hsql::SetOperator& set_operator) {
   if (set_operator.setType == hsql::kSetIntersect) {
   }
 
   if (set_operator.setType == hsql::kSetExcept) {
   }
-}
-
-/* std::shared_ptr<AbstractLQPNode> SQLTranslator::_translate_set_operation(
-    const hsql::SetOperator& set_operator, const std::vector<SelectListElement>& select_list_elements) {
-  //const auto left_expression = *select_list_elements.at(0);
-  //const auto right_expression =
-
-  if (set_operator.setType == hsql::kSetIntersect) {
-  }
-
-  if (set_operator.setType == hsql::kSetExcept) {
-  }
-
-  return nullptr;
-  //return SetOperationsNode::make();
-  //return InsertNode::make(table_name, insert_data_node);
 } */
 
 void SQLTranslator::_translate_order_by(const std::vector<hsql::OrderDescription*>& order_list) {
