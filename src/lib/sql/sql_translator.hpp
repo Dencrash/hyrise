@@ -137,7 +137,6 @@ class SQLTranslator final {
   TableSourceState _translate_cross_product(const std::vector<hsql::TableRef*>& tables);
 
   NestedSetOperatorState _translate_nested_set_operator_select(const hsql::SelectStatement& hsql_select_stmt);
-  //NestedSetOperatorState _translate_set_operator(const hsql::SetOperator& set_operator);
   NestedSetOperatorState _translate_set_operator(const hsql::SelectStatement& nested_select);
 
   std::vector<SelectListElement> _translate_select_list(const std::vector<hsql::Expr*>& select_list);
