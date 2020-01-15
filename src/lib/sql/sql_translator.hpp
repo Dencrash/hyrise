@@ -87,6 +87,22 @@ class SQLTranslator final {
     std::shared_ptr<SQLIdentifierResolver> sql_identifier_resolver;
   };
 
+  struct NestedSetOperatorState final {
+    NestedSetOperatorState() = default;
+    NestedSetOperatorState(const std::shared_ptr<AbstractLQPNode>& lqp,
+                           const std::vector<SelectListElement>& elements_in_order,
+                           const std::shared_ptr<SQLIdentifierResolver>& sql_identifier_resolver);
+
+    void append(NestedSetOperatorState&& rhs);
+
+    std::shared_ptr<AbstractLQPNode> lqp;
+
+    // To establish the correct order of columns in SELECT *
+    std::vector<SelectListElement> elements_in_order;
+
+    std::shared_ptr<SQLIdentifierResolver> sql_identifier_resolver;
+  };
+
   // Represents the '*'/'<table>.*' wildcard in a Query. The SQLParser regards it as an Expression, but to Hyrise it
   // isn't one
   struct SQLWildcard final {
@@ -120,11 +136,13 @@ class SQLTranslator final {
   TableSourceState _translate_natural_join(const hsql::JoinDefinition& join);
   TableSourceState _translate_cross_product(const std::vector<hsql::TableRef*>& tables);
 
+  NestedSetOperatorState _translate_nested_set_operator_select(const hsql::SelectStatement& hsql_select_stmt);
+  //NestedSetOperatorState _translate_set_operator(const hsql::SetOperator& set_operator);
+  NestedSetOperatorState _translate_set_operator(const hsql::SelectStatement& nested_select);
+
   std::vector<SelectListElement> _translate_select_list(const std::vector<hsql::Expr*>& select_list);
   void _translate_select_groupby_having(const hsql::SelectStatement& select,
                                         const std::vector<SelectListElement>& select_list_elements);
-
-  void _translate_set_operation(const hsql::SetOperator& set_operator);
 
   void _translate_order_by(const std::vector<hsql::OrderDescription*>& order_list);
   void _translate_limit(const hsql::LimitDescription& limit);

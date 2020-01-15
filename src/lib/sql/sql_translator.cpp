@@ -46,6 +46,7 @@
 #include "logical_query_plan/lqp_utils.hpp"
 #include "logical_query_plan/predicate_node.hpp"
 #include "logical_query_plan/projection_node.hpp"
+#include "logical_query_plan/set_operation_node.hpp"
 #include "logical_query_plan/sort_node.hpp"
 #include "logical_query_plan/static_table_node.hpp"
 #include "logical_query_plan/stored_table_node.hpp"
@@ -213,7 +214,7 @@ std::shared_ptr<AbstractLQPNode> SQLTranslator::_translate_select_statement(cons
 
   AssertInput(select.selectList, "SELECT list needs to exist");
   AssertInput(!select.selectList->empty(), "SELECT list needs to have entries");
-  AssertInput(!select.nestedSetSelectStatement, "Set operations (UNION/INTERSECT/...) are not yet supported yet");
+  //AssertInput(!select.nestedSetSelectStatement, "Set operations (UNION/INTERSECT/...) are not yet supported yet");
 
   // Translate WITH clause
   if (select.withDescriptions) {
@@ -245,10 +246,10 @@ std::shared_ptr<AbstractLQPNode> SQLTranslator::_translate_select_statement(cons
   _translate_select_groupby_having(select, select_list_elements);
 
   // Translate UNION, INTERSECT, EXCEPT
-  /* if (select.nestedSetSelectStatement) {
-    _translate_set_operation(*select.setOperator);
-    //_translate_set_operation(*select.setOperator, select_list_elements);
-  } */
+  // ???maybe select.setOperator???
+  if (select.nestedSetSelectStatement) {
+    _translate_nested_set_operator_select(*select.nestedSetSelectStatement);
+  }
 
   // Translate ORDER BY and LIMIT
   if (select.order) _translate_order_by(*select.order);
@@ -500,6 +501,20 @@ SQLTranslator::TableSourceState SQLTranslator::_translate_table_ref(const hsql::
 
     default:
       Fail("Unexpected SQLParser TableRef in FROM");
+  }
+}
+
+SQLTranslator::NestedSetOperatorState SQLTranslator::_translate_nested_set_operator_select(
+    const hsql::SelectStatement& hsql_select_stmt) {
+  switch (hsql_select_stmt.setOperator->setType) {
+    case hsql::kIntersect:
+      return _translate_set_operator(hsql_select_stmt);
+    case hsql::kExcept:
+      // TODO Teresa: Doesn't work yet >> only for build issue
+      return _translate_set_operator(hsql_select_stmt);
+    case hsql::kUnion:
+      // TODO Teresa: Doesn't work yet >> only for build issue
+      return _translate_set_operator(hsql_select_stmt);
   }
 }
 
@@ -820,6 +835,59 @@ SQLTranslator::TableSourceState SQLTranslator::_translate_natural_join(const hsq
   }
 
   // Create output TableSourceState
+  result_state.lqp = lqp;
+
+  return result_state;
+}
+
+SQLTranslator::NestedSetOperatorState SQLTranslator::_translate_set_operator(const hsql::SelectStatement& select_stmt) {
+  Assert(select_stmt.setOperator->setType == hsql::kIntersect, "select must be a intersect operation");
+
+  auto left_state = _translate_nested_set_operator_select(select_stmt);
+  auto right_state = _translate_nested_set_operator_select(*(select_stmt.nestedSetSelectStatement));
+
+  const auto left_sql_identifier_resolver = left_state.sql_identifier_resolver;
+  const auto right_sql_identifier_resolver = right_state.sql_identifier_resolver;
+  const auto left_input_lqp = left_state.lqp;
+  const auto right_input_lqp = right_state.lqp;
+
+  std::cout << *left_input_lqp << std::endl;
+
+  auto set_operator_expression = std::vector<std::shared_ptr<AbstractExpression>>{};
+  auto result_state = std::move(left_state);
+
+  for (const auto& right_element : right_state.elements_in_order) {
+    const auto& right_expression = right_element.expression;
+    const auto& right_identifiers = right_element.identifiers;
+
+    if (!right_identifiers.empty()) {
+      const auto right_identifier = right_identifiers.back();
+
+      const auto left_expression =
+          left_sql_identifier_resolver->resolve_identifier_relaxed({right_identifier.column_name});
+
+      if (left_expression) {
+        set_operator_expression.emplace_back(
+            std::make_shared<BinaryPredicateExpression>(PredicateCondition::Equals, left_expression, right_expression));
+        continue;
+      }
+
+      // No matching column in the left input found, add the column from the right input to the output
+      result_state.elements_in_order.emplace_back(right_element);
+      result_state.sql_identifier_resolver->add_column_name(right_expression, right_identifier.column_name);
+      /* if (right_identifier.table_name) {
+        result_state.elements_by_table_name[*right_identifier.table_name].emplace_back(right_element);
+        result_state.sql_identifier_resolver->set_table_name(right_expression, *right_identifier.table_name);
+      } */
+    }
+  }
+  auto lqp = std::shared_ptr<AbstractLQPNode>();
+
+  if (set_operator_expression.empty()) {
+  } else {
+    //lqp = SetOperationNode::make(SetOperationMode::Intersect, set_operator_expression.front(), left_input_lqp, right_input_lqp);
+    lqp = JoinNode::make(JoinMode::AntiNullAsTrue, set_operator_expression.front(), left_input_lqp, right_input_lqp);
+  }
   result_state.lqp = lqp;
 
   return result_state;
