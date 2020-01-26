@@ -44,6 +44,7 @@
 #include "logical_query_plan/import_node.hpp"
 #include "logical_query_plan/insert_node.hpp"
 #include "logical_query_plan/join_node.hpp"
+#include "logical_query_plan/union_node.hpp"
 #include "logical_query_plan/limit_node.hpp"
 #include "logical_query_plan/lqp_utils.hpp"
 #include "logical_query_plan/predicate_node.hpp"
@@ -278,7 +279,7 @@ std::shared_ptr<AbstractLQPNode> SQLTranslator::_translate_select_statement(cons
 
   if (select.setOperators) {
     for (const auto set_operator : *select.setOperators) {
-      AssertInput(!(set_operator->setType == hsql::kSetUnion), "Union Operations are currently not supported");
+//      AssertInput(!(set_operator->setType == hsql::kSetUnion), "Union Operations are currently not supported");
       _translate_set_operation(*set_operator);
       if (set_operator->resultOrder) _translate_order_by(*set_operator->resultOrder);
       if (set_operator->resultLimit) _translate_limit(*set_operator->resultLimit);
@@ -316,6 +317,10 @@ void SQLTranslator::_translate_set_operation(const hsql::SetOperator& set_operat
     lqp = JoinNode::make(JoinMode::Except, join_predicates, left_input_lqp, right_input_lqp);
   } else if (set_operator.setType == hsql::kSetIntersect) {
     lqp = JoinNode::make(JoinMode::Intersect, join_predicates, left_input_lqp, right_input_lqp);
+  } else {
+      lqp = UnionNode::make(UnionMode::All, left_input_lqp, right_input_lqp);
+//      lqp->set_left_input(left_input_lqp);
+//      lqp->set_right_input(right_input_lqp);
   }
 
   if (!join_predicates.empty()) {
@@ -325,9 +330,8 @@ void SQLTranslator::_translate_set_operation(const hsql::SetOperator& set_operat
 
   if (!set_operator.isAll) {
     lqp = AggregateNode::make(_unwrap_elements(_inflated_select_list_elements),
-                                       std::vector<std::shared_ptr<AbstractExpression>>{}, lqp);
+                                    std::vector < std::shared_ptr < AbstractExpression >> {}, lqp);
   }
-
   _current_lqp = lqp;
 }
 

@@ -18,8 +18,8 @@ std::string UnionNode::description(const DescriptionMode mode) const {
 }
 
 const std::vector<std::shared_ptr<AbstractExpression>>& UnionNode::column_expressions() const {
-  Assert(expressions_equal(left_input()->column_expressions(), right_input()->column_expressions()),
-         "Input Expressions must match");
+//  Assert(expressions_equal(left_input()->column_expressions(), right_input()->column_expressions()),
+//         "Input Expressions must match");
   return left_input()->column_expressions();
 }
 
